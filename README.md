@@ -11,6 +11,10 @@ pip install -r requirements.txt
 ```
 ## Usage 🕹️
 
+```
+python3 stitch.py
+```
+
 The videos to stitch can be found in the `Video` folder.
 The frames of the two different optics are saved in `Frames` folder, where corresponding frames are named `frame{i}_left` and `frame{i}_right`.
 The code implementation allows to stitch together corresponding frames, and stitched images are stored in the `Result` folder. Once all the frames are successfully stitched, a final video is created.
