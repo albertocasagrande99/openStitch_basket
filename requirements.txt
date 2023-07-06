@@ -1,3 +1,5 @@
 stitching
 #notebook
 matplotlib
+imutils
+tqdm
