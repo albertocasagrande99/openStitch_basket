@@ -17,6 +17,8 @@ import pickle
 from pickle import dump, load
 from tqdm import tqdm
 import imutils
+import argparse
+import os
 
 def get_image_paths(img_set):
     image_paths = [str(path.relative_to('.')) for path in Path('Frames').rglob(f'{img_set}*')]
@@ -181,9 +183,10 @@ class Stitcher:
         return panorama
 
 #build a video from the stitched images
-def convert_frames_to_video(pathIn,pathOut,fps):
+def convert_frames_to_video(pathIn, pathOut, fps, n_frames):
+    print("Creating final video...")
     frame_array = []  
-    for i in range(128):
+    for i in range(n_frames):
         filename=pathIn + "frame_" + str(i)+".jpg"
         #reading each files
         img = cv.imread(filename)
@@ -197,8 +200,10 @@ def convert_frames_to_video(pathIn,pathOut,fps):
         out.write(frame_array[i])
     out.release()
 
-def stitch_images(stitcher):
-    for i in tqdm(range(128)):
+def stitch_images(stitcher, n_frames):
+    if not os.path.exists('Result'):
+        os.mkdir('Result')
+    for i in tqdm(range(n_frames)):
         images = "frame"+str(i)+"_"
         output_path = 'Result/frame_'+str(i)+'.jpg'
         if(i==0):
@@ -208,10 +213,47 @@ def stitch_images(stitcher):
         #save the stitched images in Result folder
         cv.imwrite(output_path, panorama)
 
+def crop_video(video):
+    print("Video cropping...")
+    os.system("ffmpeg -i " + video + " -filter:v \"crop=1155:1792:895:0\" Video/left.mp4")
+    os.system("ffmpeg -i " + video + " -filter:v \"crop=1150:1792:2050:0\" Video/right.mp4")
+
+def extract_frames(videos):
+    print("Frame extraction...")
+    folder = 'Frames'
+    if not os.path.exists(folder):
+        os.mkdir(folder)
+    for video in videos:
+        vidcap = cv.VideoCapture("Video/"+video)
+        count = 0
+        while True:
+            success,image = vidcap.read()
+            if not success:
+                break
+            cv.imwrite(os.path.join(folder,"frame{:d}_".format(count)+os.path.splitext(video)[0]+".jpg"), image)     # save frame as JPEG file
+            count += 1
+        print("{} images are extacted in {}.".format(count,folder))
+    return count
+
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Video stitching", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-i", "--input_video", action="store", help="Specifies the input video", required=True)
+    args = parser.parse_args()
+
+    #Crop input video
+    video = args.input_video
+    crop_video(video)
+
+    #Extract frames from videos
+    videos = ["right.mp4", "left.mp4"]
+    n_frames = extract_frames(videos)
+    
+    #Stitch corresponding frames
     stitcher = Stitcher()
-    stitch_images(stitcher)
+    stitch_images(stitcher, n_frames)
+
+    #Create output video
     pathIn= 'Result/'
     pathOut = 'output_video.avi'
     fps = 30.0
-    convert_frames_to_video(pathIn, pathOut, fps)
+    convert_frames_to_video(pathIn, pathOut, fps, n_frames)
