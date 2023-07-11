@@ -7,7 +7,7 @@ Preview the tutorial [here](https://github.com/lukasalexanderweber/stitching_tut
 Install the dependencies.
 
 ```bash
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 Make sure to have also **Ffmpeg** installed in your system ⚠️
