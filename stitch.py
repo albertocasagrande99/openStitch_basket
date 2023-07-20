@@ -19,6 +19,8 @@ from tqdm import tqdm
 import imutils
 import argparse
 import os
+import glob
+import cv2
 
 def get_image_paths(img_set):
     image_paths = [str(path.relative_to('.')) for path in Path('Frames').rglob(f'{img_set}*')]
@@ -186,7 +188,7 @@ class Stitcher:
 def convert_frames_to_video(pathIn, pathOut, fps, n_frames):
     print("Creating final video...")
     frame_array = []  
-    for i in range(n_frames):
+    for i in tqdm(range(n_frames)):
         filename=pathIn + "frame_" + str(i)+".jpg"
         #reading each files
         img = cv.imread(filename)
@@ -235,6 +237,31 @@ def extract_frames(videos):
         print("{} images are extacted in {}.".format(count,folder))
     return count
 
+def read_csv_map(filename):
+    with open(filename, 'r') as file:
+        data = np.loadtxt(file, delimiter=',')
+    return data
+
+
+def calibration_images():
+    print("Calibration Images")
+    imgs = './Frames/*.jpg'  # Replace with the actual path to your directory
+    # Get all elements (files and directories) in the specified directory
+    elements = glob.glob(imgs)
+    for elem in tqdm(elements):
+        src_image = cv2.imread(elem)
+        if "_left" in elem:
+            mapX = read_csv_map('Calibration/out11_1_mapX.csv')
+            mapY = read_csv_map('Calibration/out11_1_mapY.csv')
+        elif "_right" in elem:
+            mapX = read_csv_map('Calibration/out11_1_mapX.csv')
+            mapY = read_csv_map('Calibration/out11_1_mapY.csv')
+        mapX = np.float32(mapX)
+        mapY = np.float32(mapY)
+        undistorted_image = cv2.remap(src_image, mapX, mapY, cv2.INTER_LINEAR)
+        cv2.imwrite(elem,undistorted_image)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Video stitching", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-i", "--input_video", action="store", help="Specifies the input video", required=True)
@@ -247,8 +274,12 @@ if __name__ == '__main__':
     #Extract frames from videos
     videos = ["right.mp4", "left.mp4"]
     n_frames = extract_frames(videos)
+
+    #Calibration images
+    calibration_images()
     
     #Stitch corresponding frames
+    print("Stitching")
     stitcher = Stitcher()
     stitch_images(stitcher, n_frames)
 
