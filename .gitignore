@@ -1,3 +1,5 @@
 __pycache__/
-/Frames
-/Result
+/.vscode
+
+frames
+videos
