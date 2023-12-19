@@ -1,4 +1,4 @@
-## Basketball court | Stitching using [openStitching](https://github.com/OpenStitching)
+# Basketball court | Stitching using [openStitching](https://github.com/OpenStitching)
 
 Preview the tutorial [here](https://github.com/lukasalexanderweber/stitching_tutorial/blob/master/docs/Stitching%20Tutorial.md)
 
@@ -11,11 +11,13 @@ pip3 install -r requirements.txt
 ```
 
 Make sure to have also **Ffmpeg** installed in your system ⚠️
+
 ## Usage 🕹️
 
+```bash
+python3 stitch.py -i input_video.mp4 -o output_video.mp4
 ```
-python3 stitch.py -i Video/stitch.mp4
-```
+
 - First of all, two crops of the `stitch.mp4` video are created using *Ffmpeg*, which correspond to two different optics of the camera. These crops to stitch are saved in the `Video` folder.
 - The frames of the two crops are extracted and saved in the `Frames` folder, where corresponding frames are named `frame{i}_left` and `frame{i}_right`.
 - The code implementation allows to stitch together corresponding frames, and stitched images are stored in the `Result` folder.
